@@ -1,6 +1,8 @@
+import base64
 import io
 import json
 import os
+import time
 import wave
 
 import keyboard
@@ -68,6 +70,38 @@ def speak(text, speaker):
     while data:
         stream.write(data)
         data = wf.readframes(chunk)
+    time.sleep(0.1)
+    stream.stop_stream
+    stream.close()
+    p.terminate()
+
+
+def capcut_speak(text, speaker):
+    data = {
+        "text": text,
+        "speaker": speaker,
+    }
+
+    synthesized = requests.post(
+        "https://api.vxxx.cf/tts/synthesize",
+        json=data
+    ).json()
+
+    audio = io.BytesIO(base64.b64decode(synthesized["content"]))
+    wf = wave.open(audio, "rb")
+    p = pyaudio.PyAudio()
+    stream = p.open(format=p.get_format_from_width(wf.getsampwidth()),
+                    channels=wf.getnchannels(),
+                    rate=wf.getframerate(),
+                    output=True,
+                    )
+
+    chunk = 1024
+    data = wf.readframes(chunk)
+    while data:
+        stream.write(data)
+        data = wf.readframes(chunk)
+    time.sleep(0.1)
     stream.stop_stream
     stream.close()
     p.terminate()
@@ -98,8 +132,34 @@ class TalkFriends():
     def main(self):
         self.is_active = True
         while self.is_active:
-            text = alt_listen()
-            speak(text, 43)
+            text = listen()
+            speak(text, speaker=43)
+
+
+['カワボ',
+    'お姉さん',
+    '少女',
+    '女子',
+    '男子',
+    '坊ちゃん',
+    '癒し系女子',
+    '女子アナ',
+    '男性アナ',
+    '元気ロリ',
+    '明るいハニー',
+    '優しいレディー',
+    '風雅メゾソプラノ',
+    'Naoki',
+    'Sakura',
+    'Keiko',
+    'Miho',
+    'ヒカキン',
+    '丸山礼',
+    '修一朗',
+    'マツダ家の日常',
+    'まちこりーた',
+    'モジャオ',
+    'モリスケ']
 
 
 t = TalkFriends()
