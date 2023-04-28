@@ -173,5 +173,4 @@ def get_ai_response(recognized_text):
         headers={"Content-Type": "application/json"},
     ).json()
     ai_response = response["bestResponse"]["utterance"]
-    print(ai_response)
     return ai_response
