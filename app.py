@@ -1,128 +1,17 @@
-import subprocess
 import threading
 import tkinter
 import tkinter.ttk as ttk
 
-from dotenv import load_dotenv
+from speech_assistant import get_ai_response, koeiro_speak, listen
 
-import main
-
-load_dotenv(".env")
-subprocess.Popen(r"C:\Users\owner\Desktop\voice\COEIROINK-GPU-v.1.7.2\COEIROINK.exe")
-
-select_voice_dict = {
-    "VOICEVOX": {
-        "四国めたん": 2,
-        "四国めたんあまあま": 0,
-        "四国めたんツンツン": 6,
-        "四国めたんセクシー": 4,
-        "四国めたんささやき": 36,
-        "四国めたんヒソヒソ": 37,
-        "ずんだもん": 3,
-        "ずんだもんあまあま": 1,
-        "ずんだもんツンツン": 7,
-        "ずんだもんセクシー": 5,
-        "ずんだもんささやき": 22,
-        "ずんだもんヒソヒソ": 38,
-        "春日部つむぎ": 8,
-        "雨晴はう": 10,
-        "波音リツ": 9,
-        "冥鳴ひまり": 14,
-        "九州そら": 16,
-        "九州そらあまあま": 15,
-        "九州そらツンツン": 18,
-        "九州そらセクシー": 17,
-        "九州そらささやき": 19,
-        "もち子さん": 20,
-        "WhiteCul": 23,
-        "WhiteCulたのしい": 24,
-        "WhiteCulかなしい": 25,
-        "WhiteCulびえーん": 26,
-        "後鬼人間": 27,
-        "後鬼ぬいぐるみ": 28,
-        "No.7": 29,
-        "No.7アナウンス": 30,
-        "No.7アナウンス": 30,
-        "No.7読み聞かせ": 31,
-        "櫻歌ミコ": 43,
-        "櫻歌ミコ第二形態": 44,
-        "櫻歌ミコロリ": 45,
-        "sayo": 46,
-        "ナースロボタイプT": 47,
-        "ナースロボタイプT楽々": 48,
-        "ナースロボタイプT恐怖": 49,
-        "ナースロボタイプT内緒話": 50,
-        "春歌ナナ": 54,
-        "猫使アル": 55,
-        "猫使アルおちつき": 56,
-        "猫使アルうきうき": 57,
-        "猫使ビィ": 58,
-        "猫使ビィおちつき": 59,
-        "猫使ビィ人見知り": 60,
-    },
-    "COEIROINK": {
-        "つくよみちゃんれいせい": 0,
-        "つくよみちゃんおしとやか": 5,
-        "つくよみちゃんげんき": 6,
-        "MANA": 1,
-        "MANAいっしょうけんめい": 7,
-        "MANAごきげん": 40,
-        "ディアちゃん": 3,
-        "アルマちゃん表v1": 4,
-        "アルマちゃん表v2": 10,
-        "アルマちゃん裏": 11,
-        "KANA": 30,
-        "KANAえんげき": 31,
-        "KANAほうかご": 32,
-        "MANA+ふくれっつら": 41,
-        "MANA+しょんぼり": 42,
-        "MANA+ないしょばなし": 43,
-        "MANA+ひっさつわざ": 44,
-        "AI声優朱花": 50,
-        "リリンちゃん": 90,
-        "リリンちゃんささやき": 91,
-        "ろさちゃんsoft": 327965129,
-        "ろさちゃんsoftはきはき": 1863560156,
-        "ろさちゃんsoftQ": 1863560157,
-        "ろさちゃんquiet": 1624935238,
-        "ろさちゃんquietはきはき": 1505745522,
-        "ろさちゃんpress": 1551844697,
-        "ろさちゃんfaster": 2053618772,
-    },
-    "SHAREVOX": {
-        "小春音アミ": 7,
-        "小春音アミ喜び": 8,
-        "小春音アミ怒り": 9,
-        "小春音アミ悲しみ": 10,
-        "つくよみちゃんおしとやか": 11,
-    },
-    "CapCut": {
-        'カワボ': "",
-        'お姉さん': "",
-        '少女': "",
-        '女子': "",
-        '男子': "",
-        '坊ちゃん': "",
-        '癒し系女子': "",
-        '女子アナ': "",
-        '男性アナ': "",
-        '元気ロリ': "",
-        '明るいハニー': "",
-        '優しいレディー': "",
-        '風雅メゾソプラノ': "",
-        'Naoki': "",
-        'Sakura': "",
-        'Keiko': "",
-        'Miho': "",
-        'ヒカキン': "",
-        '丸山礼': "",
-        '修一朗': "",
-        'マツダ家の日常': "",
-        'まちこりーた': "",
-        'モジャオ': "",
-        'モリスケ': "",
-    },
-}
+select_style_list = [
+        'talk',
+        'happy',
+        'sad',
+        'angry',
+        'fear',
+        'surprised',
+]
 
 
 class Application(tkinter.Frame):
@@ -137,41 +26,53 @@ class Application(tkinter.Frame):
     def create_widgets(self):
         label = tkinter.Label(self, text="ボタンを押してから「おしまい」と言うと会話が終了します")
         label.pack(side="bottom")
-        label = tkinter.Label(self, text="声を選択してください")
+        label = tkinter.Label(self, text="スタイルを選択してください")
         label.pack(side="top")
+
         # 閉じるボタン
         stop_btn = tkinter.Button(self, text="会話を終える", command=self.stop_loop)
         stop_btn.pack(side='bottom')
 
+        # スタイルの選択
         combobox_frame = tkinter.Frame(self)
         combobox_frame.pack(anchor="center")
-        # 合成ソフトの選択
-        selected = tkinter.StringVar()
-        self.combobox1 = ttk.Combobox(
+        self.combobox = ttk.Combobox(
             combobox_frame,
             justify="center",
             state="readonly",
-            values=list(select_voice_dict.keys()),
-            textvariable=selected,
-            width=10,
-        )
-        self.combobox1.set("VOICEVOX")
-        self.combobox1.bind(
-            "<<ComboboxSelected>>",
-            lambda event: self.combobox2.configure(values=list(select_voice_dict[self.combobox1.get()].keys())))
-        self.combobox1.set("VOICEVOX")
-        self.combobox1.pack(side="left")
-
-        # 話者の選択
-        self.combobox2 = ttk.Combobox(
-            combobox_frame,
-            justify="center",
-            state="readonly",
-            values=list(select_voice_dict[self.combobox1.get()].keys()),
+            values=select_style_list,
             width=20,
             height=20,
         )
-        self.combobox2.pack(side="left")
+        self.combobox.set("talk")
+        self.combobox.pack()
+
+        # speaker_xの数値の選択
+        self.scale_x = tkinter.Scale(
+            self,
+            orient=tkinter.HORIZONTAL,
+            from_=-3.00,
+            to=3.00,
+            tickinterval=1.00,
+            resolution=0.01,
+            label="speaker_x"
+        )
+        self.scale_x.pack(padx=20, fill="x")
+
+        # speaker_yの数値の選択
+        self.scale_y = tkinter.Scale(
+            self,
+            orient=tkinter.HORIZONTAL,
+            from_=-3.00,
+            to=3.00,
+            tickinterval=1.00,
+            resolution=0.01,
+            label="speaker_y"
+        )
+        self.scale_y.pack(padx=20, fill="x")
+
+        label = tkinter.Label(self, text="-3.00が男声より、3.00が女声よりです")
+        label.pack()
 
         # 実行ボタン
         start_btn = tkinter.Button(self, text="会話を始める", command=self.start_loop)
@@ -187,16 +88,14 @@ class Application(tkinter.Frame):
 
     def loop(self, stop_event):
         while not stop_event.is_set():
-            text = main.listen()
-            ai_response = main.get_ai_response(text)
-            if self.combobox1.get() == "VOICEVOX":
-                main.voicevox_speak(ai_response, speaker=select_voice_dict["VOICEVOX"][self.combobox2.get()])
-            elif self.combobox1.get() == "COEIROINK":
-                main.coeiroink_speak(ai_response, speaker=select_voice_dict["COEIROINK"][self.combobox2.get()])
-            elif self.combobox1.get() == "SHAREVOX":
-                main.sharevox_speak(ai_response, speaker=select_voice_dict["SHAREVOX"][self.combobox2.get()])
-            elif self.combobox1.get() == "CapCut":
-                main.capcut_speak(ai_response, speaker=self.combobox2.get())
+            text = listen()
+            ai_response =get_ai_response(text)
+            koeiro_speak(
+                text=ai_response,
+                speaker_x=self.scale_x.get(),
+                speaker_y=self.scale_y.get(),
+                style=self.combobox.get(),
+            )
 
 
 root = tkinter.Tk()
